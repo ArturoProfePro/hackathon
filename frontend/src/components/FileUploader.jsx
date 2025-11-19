@@ -24,8 +24,8 @@ export const FileUploader = ({ onUpload }) => {
   return (
     <div className="mt-5">
       <div
-        className={`border-2 border-dashed p-6 rounded-xl text-center transition-all ${
-          isDragging ? 'bg-blue-100 border-blue-500' : 'bg-gray-100'
+        className={`border-2 h-full flex-row items-center relative justify-center w-full border-dashed p-6 rounded-xl text-center transition-all ${
+          isDragging ? 'bg-blue-100 border-blue-500' : 'bg-[rgb(48,48,48)]'
         }`}
         onDragOver={(e) => {
           e.preventDefault();
@@ -34,15 +34,13 @@ export const FileUploader = ({ onUpload }) => {
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
       >
-        <p className="text-gray-600">
-          Перетащи PDF сюда или нажми, чтобы выбрать
-        </p>
+        <p className="text-white">Перетащи PDF сюда или нажми, чтобы выбрать</p>
 
         <input
           type="file"
           accept="application/pdf"
           onChange={handleFileSelect}
-          className="opacity-0  inset-0 cursor-pointer"
+          className="opacity-0 absolute top-0 inset-0 cursor-pointer"
         />
       </div>
 

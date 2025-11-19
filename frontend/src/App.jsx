@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { ChatWindow } from './Components/ChatWindow';
-import { MessageInput } from './Components/MessageInput';
-import { FileUploader } from './Components/FileUploader';
 import { sendMessage, uploadPdf } from './api/api';
 
 function App() {
@@ -29,15 +27,23 @@ function App() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-10">
-      <h1 className="text-3xl font-bold mb-6 text-center">
-        ChatBot with PDF Upload
-      </h1>
-
-      <ChatWindow messages={messages} />
-      <MessageInput onSend={handleSend} />
-      <FileUploader onUpload={handleUpload} />
-    </div>
+    <>
+      <div className="h-screen overflow-hidden">
+        <h1 className="text-2xl  whitespace-nowrap fixed z-10 top-0 w-full hover bg-[#212121] font-mono  text-white py-2 px-4 border-b border-white/10">
+          <div className="w-3.5 hover:w-full transition-all duration-666 animate-bounce hover:animate-none ease-in-out overflow-hidden">
+            Creator of the Lecture
+          </div>
+        </h1>
+        <div className="max-w-3xl overflow-y-auto h-full  mx-auto ">
+          <ChatWindow
+            messages={messages}
+            handleUpload={handleUpload}
+            handleSend={handleSend}
+          />
+          {/* <FileUploader onUpload={handleUpload} /> */}
+        </div>
+      </div>
+    </>
   );
 }
 
