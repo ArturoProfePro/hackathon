@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ED‑TECH — финальная версия</title>
+    <link rel="stylesheet" href="static/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Montserrat", sans-serif;
+        background: linear-gradient(145deg, #1a1c21, #0d0f12);
+        color: #e8e8e8;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+      header {
+        height: 70px;
+        display: flex;
+        align-items: center;
+        padding: 0 30px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        z-index: 2;
+      }
+      .logo {
+        font-size: 28px;
+        font-weight: 900;
+        letter-spacing: 3px;
+        position: relative;
+      }
+      .logo span::after {
+        content: "";
+        width: 30px;
+        height: 30px;
+        position: absolute;
+        top: -20px;
+        right: -25px;
+      }
+      nav {
+        margin-left: 50px;
+        display: flex;
+        gap: 35px;
+      }
+      .tab {
+        font-size: 16px;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: 0.3s;
+        padding-bottom: 8px;
+        position: relative;
+      }
+      .tab:hover,
+      .tab.active {
+        opacity: 1;
+      }
+      .tab.active::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: 3px;
+        width: 100%;
+        border-radius: 3px;
+        background: white;
+      }
+      main {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+      }
+      .page {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        padding: 40px;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(10px);
+        transition: 0.35s;
+        overflow-y: auto;
+      }
+      .page.active {
+        opacity: 1;
+        pointer-events: all;
+        transform: translateY(0);
+      }
+      h1 {
+        font-size: 38px;
+        margin-bottom: 20px;
+        font-weight: 800;
+      }
+      .file-btn,
+      .upload-btn {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 12px 18px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: inline-block;
+        transition: 0.25s;
+        font-size: 15px;
+      }
+      .file-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+      .chat-window {
+        width: 100%;
+        height: calc(100% - 210px);
+        background: rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        padding: 20px;
+        overflow-y: auto;
+      }
+      .chat-message {
+        margin-bottom: 12px;
+        line-height: 1.5;
+      }
+      .chat-message strong {
+        margin-right: 6px;
+      }
+      .chat-message.ai strong {
+        color: #9fb8ff;
+      }
+      .chat-message.error strong {
+        color: #ff8c8c;
+      }
+      .chat-input-wrap {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+      }
+      textarea {
+        flex: 1;
+        height: 70px;
+        resize: none;
+        border-radius: 8px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: white;
+      }
+      .send-btn {
+        padding: 10px 16px;
+        background: #346dff;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+      }
+      .send-btn:hover {
+        background: #1d4ffe;
+      }
+      .send-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      #libraryList {
+        margin-top: 15px;
+        max-height: calc(100% - 150px);
+        overflow-y: auto;
+      }
+      .library-item {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 14px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        border: 1px solid transparent;
+      }
+      .library-item.active {
+        border-color: rgba(52, 109, 255, 0.8);
+      }
+      .library-meta {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.6);
+        margin-top: 4px;
+      }
+      .library-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .library-actions button {
+        background: rgba(52, 109, 255, 0.9);
+        border: none;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .library-actions button.danger {
+        background: rgba(255, 89, 89, 0.9);
+      }
+      #chatAttachments .attachment {
+        background: rgba(255, 255, 255, 0.12);
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+      }
+      .active-corpus {
+        margin: 12px 0;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .status-banner {
+        margin: 10px 30px 0;
+        padding: 12px 16px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        font-size: 14px;
+        display: none;
+      }
+      .status-banner.show {
+        display: block;
+      }
+      .status-banner[data-type="success"] {
+        border-color: rgba(72, 213, 151, 0.6);
+        color: #48d597;
+      }
+      .status-banner[data-type="error"] {
+        border-color: rgba(255, 138, 138, 0.7);
+        color: #ff8c8c;
+      }
+      .status-banner[data-type="warn"] {
+        border-color: rgba(255, 209, 102, 0.7);
+        color: #ffd166;
+      }
+      footer {
+        padding: 15px 30px;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        font-size: 14px;
+        color: #aaa;
+        z-index: 2;
+      }
+      @media screen and (max-width: 900px) {
+        header {
+          flex-direction: column;
+          gap: 12px;
+          height: auto;
+          padding: 20px;
+          align-items: flex-start;
+        }
+        nav {
+          margin-left: 0;
+          flex-wrap: wrap;
+        }
+        .page {
+          padding: 24px;
+        }
+        .chat-window {
+          height: calc(100% - 250px);
+        }
+        .library-item {
+          flex-direction: column;
+        }
+        .library-actions {
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">ED‑TEC<span>H</span></div>
+      <nav>
+        <div class="tab active" data-tab="general">Общее</div>
+        <div class="tab" data-tab="books">Учебники</div>
+        <div class="tab" data-tab="assistant">Ассистент</div>
+        <div class="tab" data-tab="chat">Пользование</div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="page active" id="general">
+        <h1>Общее</h1>
+        <div class="description-box">
+          Добро пожаловать в ED‑TECH! Это наш с ребятами совместный проект, цель
+          которого — сделать обучение удобным и современным с помощью технологий
+          искусственного интеллекта. Здесь вы сможете загружать учебники,
+          создавать конспекты и общаться с ИИ‑ассистентом, который помогает
+          систематизировать знания и быстро находить нужную информацию. Мы
+          стараемся объединить удобный интерфейс, полезные функции и
+          интерактивный подход, чтобы каждый пользователь мог учиться эффективно
+          и с интересом. Этот проект — результат нашей совместной работы, идей и
+          энтузиазма, и мы надеемся, что ED‑TECH станет вашим надёжным
+          помощником в учебе и саморазвитии.
+        </div>
+        <div class="logo-svg">
+          <svg viewBox="0 0 600 200" preserveAspectRatio="xMidYMid meet">
+            <text
+              x="50%"
+              y="50%"
+              dominant-baseline="middle"
+              text-anchor="middle"
+            >
+              K.A.S.A.
+            </text>
+          </svg>
+        </div>
+      </section>
+
+      <section class="page" id="books">
+        <h1>Учебники</h1>
+        <label class="file-btn">
+          Загрузить учебник
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx,.txt"
+            hidden
+            id="uploadLibrary"
+            multiple
+          />
+        </label>
+        <div id="libraryList"></div>
+      </section>
+
+      <section class="page" id="assistant">
+        <h1>Ассистент</h1>
+        <div class="description-box">
+          Наш ИИ‑ассистент делает обучение проще и эффективнее! Он умеет
+          анализировать загруженные учебники и документы, автоматически
+          создавать подробные конспекты и структурированные заметки. Вы сможете
+          быстро находить ключевую информацию, экономить время на подготовку к
+          занятиям и сосредоточиться на понимании материала. Бот поддерживает
+          удобную работу с PDF, Word и другими форматами файлов, а интерактивный
+          чат позволяет задавать вопросы прямо по содержимому ваших учебников.
+          ED‑TECH — это не просто инструмент, это ваш персональный помощник в
+          обучении, который помогает систематизировать знания, готовиться к
+          экзаменам и развиваться каждый день. Попробуйте сами — обучение с ИИ
+          становится лёгким и увлекательным!
+        </div>
+      </section>
+
+      <section class="page" id="chat">
+        <h1>Чат с ИИ</h1>
+        <div class="active-corpus" id="activeCorpus">
+          Активный корпус: общий (без RAG)
+        </div>
+        <div class="chat-window" id="chatWindow"></div>
+        <div id="chatAttachments"></div>
+        <div class="chat-input-wrap">
+          <textarea
+            id="userMessage"
+            placeholder="Введите сообщение..."
+          ></textarea>
+          <button class="send-btn" id="sendBtn" type="button">→</button>
+        </div>
+        <label class="file-btn" style="margin-top: 10px">
+          Прикрепить файл
+          <input type="file" id="chatBook" hidden multiple />
+        </label>
+        <label class="file-btn clear-btn" id="clearLibrary"
+          >Сбросить выбор</label
+        >
+      </section>
+    </main>
+
+    <div class="status-banner" id="statusBanner"></div>
+
+    <footer>
+      Авторы • Telegram бот
+      <br /><br />
+      В разработке
+    </footer>
+
+    <script>
+      (function () {
+        const API_BASE = window.API_BASE_URL || "";
+        const tabs = document.querySelectorAll(".tab");
+        const pages = document.querySelectorAll(".page");
+        const chatWindow = document.getElementById("chatWindow");
+        const input = document.getElementById("userMessage");
+        const sendBtn = document.getElementById("sendBtn");
+        const chatAttachments = document.getElementById("chatAttachments");
+        const uploadLibrary = document.getElementById("uploadLibrary");
+        const chatBook = document.getElementById("chatBook");
+        const clearBtn = document.getElementById("clearLibrary");
+        const libraryList = document.getElementById("libraryList");
+        const activeCorpusEl = document.getElementById("activeCorpus");
+        const statusBanner = document.getElementById("statusBanner");
+
+        const state = {
+          corpora: [],
+          selectedCorpus: null,
+          ragAvailable: true,
+          sending: false,
+        };
+
+        tabs.forEach((tab) => {
+          tab.addEventListener("click", () => {
+            tabs.forEach((t) => t.classList.remove("active"));
+            pages.forEach((p) => p.classList.remove("active"));
+            tab.classList.add("active");
+            document.getElementById(tab.dataset.tab).classList.add("active");
+          });
+        });
+
+        function setStatus(message = "", type = "info") {
+          if (!message) {
+            statusBanner.classList.remove("show");
+            statusBanner.textContent = "";
+            statusBanner.removeAttribute("data-type");
+            return;
+          }
+          statusBanner.textContent = message;
+          statusBanner.dataset.type = type;
+          statusBanner.classList.add("show");
+        }
+
+        async function backendFetch(path, options = {}) {
+          const response = await fetch(`${API_BASE}${path}`, {
+            ...options,
+          });
+          const contentType = response.headers.get("content-type") || "";
+          let payload = null;
+          if (contentType.includes("application/json")) {
+            payload = await response.json();
+          } else {
+            const text = await response.text();
+            payload = text ? { detail: text } : null;
+          }
+          if (!response.ok) {
+            const detail =
+              payload?.detail || payload?.message || "Неизвестная ошибка";
+            throw new Error(detail);
+          }
+          return payload;
+        }
+
+        function writeMessage(text, type = "user") {
+          const wrapper = document.createElement("div");
+          wrapper.className = `chat-message ${type}`;
+          const author = document.createElement("strong");
+          author.textContent =
+            type === "user"
+              ? "Вы:"
+              : type === "ai-loading"
+                ? "ИИ (печатает...):"
+                : "ИИ:";
+          const body = document.createElement("span");
+          body.textContent = text;
+          wrapper.append(author, body);
+          chatWindow.appendChild(wrapper);
+          chatWindow.scrollTop = chatWindow.scrollHeight;
+          return wrapper;
+        }
+
+        function renderAttachments(files = [], corpusName) {
+          chatAttachments.innerHTML = "";
+          if (!files.length) {
+            if (corpusName) {
+              const note = document.createElement("div");
+              note.className = "attachment";
+              note.textContent = `Файлы добавлены в корпус «${corpusName}».`;
+              chatAttachments.appendChild(note);
+            }
+            return;
+          }
+
+          const fragment = document.createDocumentFragment();
+          files.forEach((file) => {
+            const box = document.createElement("div");
+            box.className = "attachment";
+            const title = document.createElement("strong");
+            title.textContent = file.filename || file.name || "Файл";
+            box.appendChild(title);
+
+            const metaText = file.file_id
+              ? `ID: ${file.file_id}`
+              : file.location
+                ? `Путь: ${file.location}`
+                : "";
+            if (metaText) {
+              const meta = document.createElement("div");
+              meta.textContent = metaText;
+              box.appendChild(meta);
+            }
+            fragment.appendChild(box);
+          });
+          chatAttachments.appendChild(fragment);
+        }
+
+        function setActiveCorpus(id, displayName) {
+          if (!id) {
+            state.selectedCorpus = null;
+            activeCorpusEl.textContent = "Активный корпус: общий (без RAG)";
+          } else {
+            state.selectedCorpus = { id, displayName: displayName || id };
+            activeCorpusEl.textContent = `Активный корпус: ${
+              displayName || id
+            }`;
+          }
+          renderLibrary();
+        }
+
+        async function sendMessage() {
+          if (state.sending) return;
+          const text = input.value.trim();
+          if (!text) return;
+
+          writeMessage(text, "user");
+          input.value = "";
+
+          state.sending = true;
+          sendBtn.disabled = true;
+          const placeholder = writeMessage("...", "ai-loading");
+
+          try {
+            const payload = { message: text };
+            if (state.selectedCorpus) {
+              payload.corpus_id = state.selectedCorpus.id;
+            }
+            const data = await backendFetch("/api/chat/", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            placeholder.querySelector("strong").textContent = "ИИ:";
+            placeholder.querySelector("span").textContent = data.message;
+          } catch (error) {
+            placeholder.classList.add("error");
+            placeholder.querySelector("strong").textContent = "Ошибка:";
+            placeholder.querySelector("span").textContent = error.message;
+            setStatus(`Не удалось получить ответ: ${error.message}`, "error");
+          } finally {
+            state.sending = false;
+            sendBtn.disabled = false;
+          }
+        }
+
+        sendBtn.addEventListener("click", sendMessage);
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+          }
+        });
+
+        async function refreshCorpora() {
+          try {
+            const corpora = await backendFetch("/api/rag/corpus");
+            state.ragAvailable = true;
+            state.corpora = corpora || [];
+            if (
+              state.selectedCorpus &&
+              !state.corpora.find((c) => c.name === state.selectedCorpus.id)
+            ) {
+              setActiveCorpus(null);
+            } else {
+              renderLibrary();
+            }
+          } catch (error) {
+            state.ragAvailable = false;
+            state.corpora = [];
+            renderLibrary();
+            setStatus(
+              `RAG недоступен: ${error.message}. Файлы сохраняются локально.`,
+              "warn",
+            );
+          }
+        }
+
+        function renderLibrary() {
+          libraryList.innerHTML = "";
+          if (!state.ragAvailable) {
+            libraryList.innerHTML =
+              "<div class='library-item'>RAG отключен. Доступен только локальный чат.</div>";
+            return;
+          }
+          if (!state.corpora.length) {
+            libraryList.innerHTML =
+              "<div class='library-item'>Пока нет корпусов. Загрузите файлы, чтобы создать первый.</div>";
+            return;
+          }
+
+          const fragment = document.createDocumentFragment();
+          state.corpora.forEach((corpus) => {
+            const item = document.createElement("div");
+            item.className = "library-item";
+            if (state.selectedCorpus?.id === corpus.name) {
+              item.classList.add("active");
+            }
+            item.innerHTML = `
+              <div>
+                <strong>${corpus.display_name || corpus.name}</strong>
+                <div class="library-meta">${corpus.name}</div>
+              </div>
+              <div class="library-actions">
+                <button class="use-btn" type="button">Использовать</button>
+                <button class="danger delete-btn" type="button">Удалить</button>
+              </div>
+            `;
+            item
+              .querySelector(".use-btn")
+              .addEventListener("click", () =>
+                setActiveCorpus(corpus.name, corpus.display_name),
+              );
+            item
+              .querySelector(".delete-btn")
+              .addEventListener("click", () => deleteCorpus(corpus.name));
+            fragment.appendChild(item);
+          });
+          libraryList.appendChild(fragment);
+        }
+
+        async function deleteCorpus(corpusId) {
+          const confirmed = confirm(
+            "Удалить корпус и все связанные файлы? Действие необратимо.",
+          );
+          if (!confirmed) return;
+          try {
+            await backendFetch(
+              `/api/rag/corpus/${encodeURIComponent(corpusId)}`,
+              {
+                method: "DELETE",
+              },
+            );
+            if (state.selectedCorpus?.id === corpusId) {
+              setActiveCorpus(null);
+            }
+            await refreshCorpora();
+            setStatus("Корпус удалён", "success");
+          } catch (error) {
+            setStatus(`Не удалось удалить корпус: ${error.message}`, "error");
+          }
+        }
+
+        async function handleFileUpload(files, preferCurrentCorpus = false) {
+          if (!files || !files.length) return;
+          const formData = new FormData();
+          files.forEach((file) => formData.append("files", file));
+          if (preferCurrentCorpus && state.selectedCorpus) {
+            formData.append("corpus_id", state.selectedCorpus.id);
+          }
+          try {
+            const result = await backendFetch("/api/upload_file/", {
+              method: "POST",
+              body: formData,
+            });
+            const uploadedFiles = result.uploaded || result.files || [];
+            renderAttachments(
+              uploadedFiles,
+              result.corpus_name || result.corpus_id,
+            );
+            if (result.corpus_id) {
+              setActiveCorpus(result.corpus_id, result.corpus_name);
+            }
+            setStatus(result.message || "Файлы загружены", "success");
+            await refreshCorpora();
+          } catch (error) {
+            setStatus(`Ошибка загрузки: ${error.message}`, "error");
+          }
+        }
+
+        uploadLibrary.addEventListener("change", (event) => {
+          const files = Array.from(event.target.files || []);
+          handleFileUpload(files);
+          event.target.value = "";
+        });
+
+        chatBook.addEventListener("change", (event) => {
+          const files = Array.from(event.target.files || []);
+          handleFileUpload(files, true);
+          event.target.value = "";
+        });
+
+        clearBtn.addEventListener("click", () => {
+          setActiveCorpus(null);
+          chatAttachments.innerHTML = "";
+          setStatus("Выбор корпуса сброшен", "info");
+        });
+
+        refreshCorpora();
+        setStatus("Готово к работе", "success");
+
+        function initSnow() {
+          const snowCanvas = document.createElement("canvas");
+          snowCanvas.className = "fx-canvas fx-snow";
+          snowCanvas.style.position = "fixed";
+          snowCanvas.style.top = 0;
+          snowCanvas.style.left = 0;
+          snowCanvas.style.zIndex = -2;
+          document.body.appendChild(snowCanvas);
+          const ctx = snowCanvas.getContext("2d");
+          const flakes = Array.from({ length: 400 }, () => ({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            size: 2 + Math.random() * 3,
+            speed: 1 + Math.random() * 1.5,
+          }));
+
+          const resize = () => {
+            snowCanvas.width = window.innerWidth;
+            snowCanvas.height = window.innerHeight;
+          };
+          window.addEventListener("resize", resize);
+          resize();
+
+          const loop = () => {
+            ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+            ctx.fillStyle = "white";
+            flakes.forEach((flake) => {
+              ctx.globalAlpha = 0.5;
+              ctx.beginPath();
+              ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
+              ctx.fill();
+              flake.y += flake.speed;
+              if (flake.y > snowCanvas.height) {
+                flake.y = -5;
+                flake.x = Math.random() * snowCanvas.width;
+              }
+            });
+            requestAnimationFrame(loop);
+          };
+          loop();
+        }
+
+        function initInteractiveLines() {
+          const linesCanvas = document.createElement("canvas");
+          linesCanvas.id = "interactiveLinesCanvas";
+          linesCanvas.style.position = "fixed";
+          linesCanvas.style.top = 0;
+          linesCanvas.style.left = 0;
+          linesCanvas.style.zIndex = -1;
+          document.body.appendChild(linesCanvas);
+          const ctx = linesCanvas.getContext("2d");
+          const points = Array.from({ length: 60 }, () => ({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+          }));
+          const mouse = { x: null, y: null };
+
+          const resize = () => {
+            linesCanvas.width = window.innerWidth;
+            linesCanvas.height = window.innerHeight;
+          };
+          window.addEventListener("resize", resize);
+          resize();
+
+          document.addEventListener("mousemove", (event) => {
+            mouse.x = event.clientX;
+            mouse.y = event.clientY;
+          });
+
+          const draw = () => {
+            ctx.clearRect(0, 0, linesCanvas.width, linesCanvas.height);
+            points.forEach((point) => {
+              const dx = (mouse.x ?? point.x) - point.x;
+              const dy = (mouse.y ?? point.y) - point.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              if (distance < 150) {
+                ctx.strokeStyle = `rgba(255,255,255,${1 - distance / 150})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(point.x, point.y);
+                ctx.lineTo(mouse.x ?? point.x, mouse.y ?? point.y);
+                ctx.stroke();
+              }
+            });
+            requestAnimationFrame(draw);
+          };
+          draw();
+        }
+
+        initSnow();
+        initInteractiveLines();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,73 @@
+/* ===== плитки для описаний ===== */
+.description-box {
+  background: rgba(255, 255, 255, 0.05); /* прозрачный фон */
+  border-radius: 16px; /* округлые углы */
+  padding: 25px 30px;
+  width: 50%; /* максимум половина экрана */
+  min-width: 350px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  transition: 0.3s;
+  overflow-y: auto; /* прокрутка при большом тексте */
+  max-height: 80vh; /* чтобы плитка не вылезала за экран */
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+/* подсветка рамки при наведении */
+.description-box:hover {
+  border-color: white;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.35);
+}
+
+/* адаптация под мобильные экраны */
+@media screen and (max-width: 900px) {
+  .description-box {
+    width: 90%; /* почти весь экран на мобильных */
+    min-width: auto;
+  }
+}
+
+/* кнопка Очистить рядом с загрузкой учебника */
+#books .file-btn.clear-btn {
+  display: inline-block;
+  margin-left: 10px;
+}
+#general {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px; /* небольшой отступ между текстом и логотипом */
+}
+
+#general .description-box {
+  width: 48%;
+}
+
+#general .logo-svg {
+  width: 48%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo-svg svg {
+  width: 100%;
+  height: auto;
+}
+
+.logo-svg svg text {
+  fill: none; /* пустые буквы */
+  stroke: white;
+  stroke-width: 4;
+  font-size: 100px; /* подгонка по высоте */
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 8px;
+  filter: drop-shadow(0 0 4px rgba(255,255,255,0.6));
+  animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+  0% { filter: drop-shadow(0 0 2px rgba(255,255,255,0.4)); }
+  50% { filter: drop-shadow(0 0 6px rgba(255,255,255,0.8)); }
+  100% { filter: drop-shadow(0 0 2px rgba(255,255,255,0.4)); }
+}

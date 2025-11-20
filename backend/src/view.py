@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 
 router = APIRouter()
 
-FRONTEND_INDEX = (Path(__file__).resolve().parents[2] / "dist" / "index.html").resolve()
+FRONTEND_INDEX = (Path(__file__).resolve().parents[2] / "src" / "index.html").resolve()
 
 
 @router.get("/")
