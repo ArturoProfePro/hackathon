@@ -1,44 +1,35 @@
-import os
+from functools import lru_cache
+from google import genai
+from google.genai.errors import APIError
+
+from config import settings
 
 
 class GeminiClient:
     """
     Класс-обертка для взаимодействия с Gemini API.
-    Инициализация выделена в отдельный метод.
+    Инициализируется в FastAPI lifespan startup.
     """
 
-    def __init__(self, model_name: str = "gemini-2.5-flash"):
-        self.client: genai.Client | None = None
+    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash"):
+        """
+        Инициализация клиента Gemini API.
+        """
         self.model_name = model_name
-        print(
-            f"✅ GeminiClient создан. Модель: {self.model_name}. Ожидание инициализации..."
-        )
-
-    def init_client(self, api_key: str):
-        """
-        Метод инициализации, вызываемый в FastAPI lifespan startup.
-        """
-        print("⚙️ Инициализация клиента Gemini API...")
-        if api_key == "":
-            raise EnvironmentError(
-                "Переменная окружения 'GEMINI_API_KEY' не найдена. "
-                "Установите свой ключ API."
-            )
+        print(f"⚙️ Инициализация клиента Gemini API (модель: {self.model_name})...")
 
         try:
-            self.client = genai.Client()
+            self.client = genai.Client(api_key=api_key)
             print("🎉 Клиент Gemini API успешно инициализирован.")
         except Exception as e:
             raise RuntimeError(f"❌ Ошибка инициализации Gemini Client: {e}")
 
     def generate_text(self, prompt: str) -> str:
         """
-        Отправляет одноразовый запрос на генерацию текста (должен быть вызван после init_client).
+        Отправляет одноразовый запрос на генерацию текста.
         """
         if self.client is None:
-            return (
-                "❌ Ошибка: Клиент не инициализирован. Вызовите init_client() первым."
-            )
+            return "❌ Ошибка: Клиент не инициализирован."
 
         print(f"⚙️ Запрос к модели {self.model_name}...")
         try:
@@ -53,8 +44,5 @@ class GeminiClient:
             return f"❌ Непредвиденная ошибка: {e}"
 
 
-def get_gemini_client():
-    return GeminiClient()
-
-
-gemini_client = get_gemini_client()
+# Глобальный экземпляр будет создан в lifespan
+gemini_client: GeminiClient | None = None

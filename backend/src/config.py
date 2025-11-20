@@ -7,6 +7,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     UPLOAD_DIR: Path = Path("uploads")
     GEMINI_API_KEY: str = ""
+    model_name: str = "gemini-2.5-flash"
+    RAG_CORPUS_ID: str = ""  # ID корпуса для RAG (опционально)
+    RAG_ENABLED: bool = False  # Включить/выключить RAG
 
     model_config = SettingsConfigDict(
         env_file=".env.example",
