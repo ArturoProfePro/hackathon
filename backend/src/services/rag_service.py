@@ -2,10 +2,12 @@ from functools import lru_cache
 from typing import Optional, List, TYPE_CHECKING
 from pathlib import Path
 
+from config import settings
 from schemas.rag import (
     CorpusSchema,
     CorpusCreateSchema,
     FileUploadSchema,
+    FileInfoSchema,
     QuerySchema,
     RAGResponseSchema,
     RelevantDocumentSchema,
@@ -101,6 +103,32 @@ class RagService:
         )
         return file_id
 
+    async def list_files(self, corpus_id: str) -> List[FileInfoSchema]:
+        """
+        Возвращает список файлов в корпусе.
+        """
+        files_data = self.rag_client.list_files(corpus_id)
+        return [
+            FileInfoSchema(
+                corpus_id=f["corpus_id"],
+                filename=f["filename"],
+                size=f["size"],
+            )
+            for f in files_data
+        ]
+
+    async def delete_file(self, corpus_id: str, filename: str) -> bool:
+        """
+        Удаляет файл из корпуса.
+        """
+        return self.rag_client.delete_file(corpus_id, filename)
+
+    async def delete_corpus(self, corpus_id: str) -> bool:
+        """
+        Удаляет корпус и все его файлы.
+        """
+        return self.rag_client.delete_corpus(corpus_id)
+
     async def query_corpus(
         self, corpus_id: str, query: str, max_results: int = 5
     ) -> List[RelevantDocumentSchema]:
@@ -156,6 +184,7 @@ class RagService:
             query=query,
             model_name=model_name,
             max_results=max_results,
+            system_prompt=settings.SYSTEM_PROMPT,
         )
 
         return RAGResponseSchema(

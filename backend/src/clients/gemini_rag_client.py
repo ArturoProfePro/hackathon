@@ -65,6 +65,26 @@ class GeminiRagClient:
                 )
         return corpora
 
+    def list_files(self, corpus_id: str) -> List[dict]:
+        """
+        Возвращает список файлов в указанном корпусе.
+        """
+        corpus_dir = self._corpus_dir(corpus_id)
+        if not corpus_dir.exists():
+            raise FileNotFoundError(f"Корпус не найден: {corpus_id}")
+
+        files: List[dict] = []
+        for f in corpus_dir.iterdir():
+            if f.is_file():
+                files.append(
+                    {
+                        "corpus_id": corpus_id,
+                        "filename": f.name,
+                        "size": f.stat().st_size,
+                    }
+                )
+        return files
+
     def upload_file_to_corpus(
         self, corpus_id: str, file_path: str, display_name: Optional[str] = None
     ) -> str:
@@ -84,6 +104,35 @@ class GeminiRagClient:
 
         print(f"✅ Файл {src} добавлен в локальный корпус {corpus_id} как {dst.name}")
         return str(dst)
+
+    def delete_file(self, corpus_id: str, filename: str) -> bool:
+        """
+        Удаляет файл из корпуса.
+        """
+        corpus_dir = self._corpus_dir(corpus_id)
+        f = corpus_dir / filename
+        if not f.exists():
+            return False
+        f.unlink()
+        print(f"🗑️ Файл {f} удалён из корпуса {corpus_id}")
+        return True
+
+    def delete_corpus(self, corpus_id: str) -> bool:
+        """
+        Удаляет корпус и все файлы внутри.
+        """
+        corpus_dir = self._corpus_dir(corpus_id)
+        if not corpus_dir.exists():
+            return False
+
+        # Удаляем все файлы
+        for f in corpus_dir.iterdir():
+            if f.is_file():
+                f.unlink()
+        # И саму директорию
+        corpus_dir.rmdir()
+        print(f"🗑️ Корпус {corpus_id} удалён")
+        return True
 
     def _read_corpus_text(self, corpus_id: str) -> str:
         """
@@ -191,6 +240,7 @@ class GeminiRagClient:
         query: str,
         model_name: str = "gemini-2.5-flash",
         max_results: int = 5,
+        system_prompt: Optional[str] = None,
     ) -> str:
         """
         Генерирует ответ на основе текста из выбранного «корпуса» (книги).
@@ -211,7 +261,12 @@ class GeminiRagClient:
                 ]
             )
 
-            prompt = f"""Ты ассистент, который отвечает на вопросы по книге.
+            base_prompt = system_prompt or (
+                "Ты ассистент, который отвечает на вопросы по книге. "
+                "Отвечай просто, без форматирования."
+            )
+
+            prompt = f"""{base_prompt}
 
 Контекст (текст книги или её части):
 {context}

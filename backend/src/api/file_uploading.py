@@ -1,5 +1,7 @@
 from pathlib import Path
-from fastapi import APIRouter, File, UploadFile
+from typing import List, Optional
+
+from fastapi import APIRouter, File, UploadFile, Form
 from fastapi.exceptions import HTTPException
 
 import shutil
@@ -12,52 +14,72 @@ router = APIRouter()
 
 
 @router.post("/")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_files(
+    files: List[UploadFile] = File(...),
+    corpus_id: Optional[str] = Form(None),
+):
     """
-    Загружает файл на сервер.
-    Если включен RAG, создаёт отдельный RAG‑корпус для этой книги
-    и загружает файл в этот корпус, чтобы его можно было выбрать в чате.
-    """
-    if file.filename == "":
-        raise HTTPException(status_code=400, detail="No file selected")
+    Загружает один или несколько файлов.
 
-    # Сохраняем файл на диск
-    file_path = settings.UPLOAD_DIR / file.filename
+    - Если `corpus_id` передан и RAG включен — файлы добавляются в существующий корпус.
+    - Если corpus_id не передан, но RAG включен — создаётся новый корпус (по имени первого файла).
+    - Если RAG выключен — файлы просто сохраняются на диск.
+    """
+    if not files:
+        raise HTTPException(status_code=400, detail="No files provided")
+
     settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    saved_files = []
+    for file in files:
+        if file.filename == "":
+            raise HTTPException(status_code=400, detail="One of files has empty name")
 
-    # Если RAG выключен — просто подтверждаем загрузку файла
+        file_path = settings.UPLOAD_DIR / file.filename
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        saved_files.append({"filename": file.filename, "location": str(file_path)})
+
     if not settings.RAG_ENABLED:
         return {
-            "message": "Книга загружена, но RAG сейчас отключен. "
-            "Включите RAG, чтобы использовать её в чате.",
-            "location": str(file_path),
+            "message": "Файлы загружены, но RAG отключен. "
+            "Включите RAG, чтобы использовать их в чате.",
+            "files": saved_files,
         }
 
-    # Создаём отдельный корпус под эту книгу и загружаем в него файл
-    try:
-        # 1) создаём корпус c display_name = имени файла
-        corpus = await rag_service.create_corpus(display_name=file.filename)
+    # Если corpus_id не указан — создаём новый корпус по имени первого файла
+    created_corpus = None
+    target_corpus_id = corpus_id
+    if target_corpus_id is None:
+        corpus = await rag_service.create_corpus(display_name=files[0].filename)
+        target_corpus_id = corpus.name
+        created_corpus = corpus
 
-        # 2) загружаем файл в этот корпус
-        rag_file_id = await rag_service.upload_file_to_corpus(
-            corpus_id=corpus.name,
-            file_path=str(file_path),
-            display_name=file.filename,
-        )
+    rag_results = []
+    for info in saved_files:
+        try:
+            rag_file_id = await rag_service.upload_file_to_corpus(
+                corpus_id=target_corpus_id,
+                file_path=info["location"],
+                display_name=info["filename"],
+            )
+            rag_results.append(
+                {
+                    "filename": info["filename"],
+                    "file_id": rag_file_id,
+                }
+            )
+        except Exception as e:
+            print(f"⚠️ Ошибка загрузки файла {info['filename']} в RAG: {e}")
 
-        return {
-            "message": "Книга загружена и доступна для выбора в RAG‑чате.",
-            "corpus_id": corpus.name,
-            "corpus_name": corpus.display_name,
-            "file_id": rag_file_id,
-        }
-    except Exception as e:
-        # Не падаем, если RAG не сработал — файл все равно сохранён
-        print(f"⚠️ Ошибка загрузки файла в RAG: {e}")
-        return {
-            "message": "Файл загружен, но не удалось добавить его в контекст RAG.",
-            "location": str(file_path),
-        }
+    return {
+        "message": "Файлы загружены и доступны в RAG."
+        if rag_results
+        else "Файлы сохранены, но не удалось добавить их в RAG.",
+        "corpus_id": target_corpus_id,
+        "corpus_name": created_corpus.display_name
+        if created_corpus
+        else target_corpus_id,
+        "uploaded": rag_results,
+    }

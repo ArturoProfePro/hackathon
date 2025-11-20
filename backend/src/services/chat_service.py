@@ -81,7 +81,7 @@ class ChatService:
                     corpus_id=actual_corpus_id,
                     query=message,
                     model_name=settings.model_name,
-                )
+            )
                 return PromptResponseSchema(message=rag_response.message)
             except Exception as e:
                 # Если RAG не сработал, fallback на обычную генерацию
